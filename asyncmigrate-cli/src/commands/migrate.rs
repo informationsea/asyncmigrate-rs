@@ -1,8 +1,8 @@
 use super::Command;
+use anyhow::Context;
 use async_trait::async_trait;
-use asyncmigrate::{Migration, MigrationChangeSets, MigrationError, MigrationErrorKind};
+use asyncmigrate::{Migration, MigrationChangeSets};
 use clap::{App, Arg, ArgMatches};
-use failure::ResultExt;
 
 pub struct MigrateCommand;
 
@@ -26,9 +26,8 @@ impl Command for MigrateCommand {
                     .takes_value(true),
             )
     }
-    async fn run(&self, matches: &ArgMatches<'static>) -> Result<(), MigrationError> {
-        let config = crate::utils::load_config(matches)
-            .context(MigrationErrorKind::OtherError("Failed to load config"))?;
+    async fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
+        let config = crate::utils::load_config(matches).context("Failed to load config")?;
         let mut connect = crate::utils::connect(&config).await?;
 
         for one_change_sets in config.changesets.iter() {
@@ -42,9 +41,7 @@ impl Command for MigrateCommand {
                 &one_change_sets.group_name,
                 &one_change_sets.directory,
             )
-            .context(MigrationErrorKind::OtherError(
-                "Failed to load migration SQLs",
-            ))?;
+            .context("Failed to load migration SQLs")?;
             //println!("Processing {}", one_change_sets.group_name);
 
             connect

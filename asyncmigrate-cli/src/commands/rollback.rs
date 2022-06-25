@@ -1,6 +1,6 @@
 use super::Command;
 use async_trait::async_trait;
-use asyncmigrate::{Migration, MigrationError};
+use asyncmigrate::Migration;
 use clap::{App, Arg, ArgMatches};
 
 pub struct RollbackCommand;
@@ -27,7 +27,7 @@ impl Command for RollbackCommand {
                     .required(true),
             )
     }
-    async fn run(&self, matches: &ArgMatches<'static>) -> Result<(), MigrationError> {
+    async fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         let config = crate::utils::load_config(matches)?;
         let mut connect = crate::utils::connect(&config).await?;
 

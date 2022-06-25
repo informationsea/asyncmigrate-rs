@@ -1,6 +1,6 @@
 use super::Command;
 use async_trait::async_trait;
-use asyncmigrate::{Migration, MigrationChangeSets, MigrationError};
+use asyncmigrate::{Migration, MigrationChangeSets};
 use clap::{App, Arg, ArgMatches};
 
 pub struct UpdateRollbackSqlCommand;
@@ -18,7 +18,7 @@ impl Command for UpdateRollbackSqlCommand {
                 .takes_value(true),
         )
     }
-    async fn run(&self, matches: &ArgMatches<'static>) -> Result<(), MigrationError> {
+    async fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         let config = crate::utils::load_config(matches)?;
         let mut connect = crate::utils::connect(&config).await?;
 

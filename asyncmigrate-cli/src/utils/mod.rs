@@ -1,6 +1,6 @@
-use asyncmigrate::{Connection, MigrationError, MigrationErrorKind};
+use anyhow::Context;
+use asyncmigrate::{Connection, MigrationError};
 use clap::{App, Arg, ArgMatches};
-use failure::ResultExt;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
@@ -34,7 +34,7 @@ pub struct MigrationConfigSet {
     pub directory: String,
 }
 
-pub fn load_config(matches: &ArgMatches<'static>) -> Result<MigrationConfig, MigrationError> {
+pub fn load_config(matches: &ArgMatches<'static>) -> anyhow::Result<MigrationConfig> {
     let mut loaded_config = load_config_try(matches)?;
     if let Some(db_url) = matches.value_of("url") {
         loaded_config.database_url = Some(db_url.to_string())
@@ -42,20 +42,18 @@ pub fn load_config(matches: &ArgMatches<'static>) -> Result<MigrationConfig, Mig
     Ok(loaded_config)
 }
 
-fn load_config_try(matches: &ArgMatches<'static>) -> Result<MigrationConfig, MigrationError> {
+fn load_config_try(matches: &ArgMatches<'static>) -> anyhow::Result<MigrationConfig> {
     let (config_path, mut migration_config) = if let Some(path) = matches.value_of("config") {
         //println!("loading config from {}", path);
         (
             path,
-            serde_json::from_reader(fs::File::open(path)?)
-                .context(MigrationErrorKind::OtherError("Cannot parse config"))?,
+            serde_json::from_reader(fs::File::open(path)?).context("Cannot parse config")?,
         )
     } else if let Ok(file) = fs::File::open("dbmigration.json") {
         //println!("loading config from current directory");
         (
             "./dbmigration.json",
-            serde_json::from_reader(file)
-                .context(MigrationErrorKind::OtherError("Cannot parse config"))?,
+            serde_json::from_reader(file).context("Cannot parse config")?,
         )
     } else {
         //println!("config file is not found");
@@ -84,6 +82,6 @@ pub async fn connect(config: &MigrationConfig) -> Result<Connection, MigrationEr
     let url = config
         .database_url
         .as_ref()
-        .ok_or(MigrationErrorKind::OtherError("No connection URL"))?;
+        .ok_or(MigrationError::OtherError("No connection URL"))?;
     asyncmigrate::connect(url).await
 }

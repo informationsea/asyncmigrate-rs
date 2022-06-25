@@ -4,7 +4,7 @@ pub mod utils;
 use clap::{crate_authors, crate_version, App, AppSettings};
 
 #[tokio::main]
-async fn main() -> Result<(), asyncmigrate::MigrationError> {
+async fn main() -> anyhow::Result<()> {
     let matches = App::new("database migration")
         .version(crate_version!())
         .author(crate_authors!())

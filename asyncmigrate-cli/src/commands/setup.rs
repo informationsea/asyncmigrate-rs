@@ -1,8 +1,8 @@
 use super::Command;
+use anyhow::Context;
 use async_trait::async_trait;
-use asyncmigrate::{MigrationError, MigrationErrorKind};
 use clap::{App, Arg, ArgMatches};
-use failure::ResultExt;
+
 use rustyline::Editor;
 use std::fs;
 use std::io::Write;
@@ -23,31 +23,31 @@ impl Command for SetupCommand {
                 .takes_value(true),
         )
     }
-    async fn run(&self, matches: &ArgMatches<'static>) -> Result<(), MigrationError> {
+    async fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()> {
         let mut rl = Editor::<()>::new();
         let host = rl
             .readline_with_initial("PostgreSQL host: ", ("localhost", ""))
-            .context(MigrationErrorKind::OtherError("Cannot get host"))?;
+            .context("Cannot get host")?;
         rl.clear_history();
         let port = rl
             .readline_with_initial("PostgreSQL port: ", ("5432", ""))
-            .context(MigrationErrorKind::OtherError("Cannot get host"))?;
+            .context("Cannot get host")?;
         rl.clear_history();
         let dbname = rl
             .readline_with_initial("PostgreSQL database name: ", ("postgres", ""))
-            .context(MigrationErrorKind::OtherError("Cannot get database name"))?;
+            .context("Cannot get database name")?;
         rl.clear_history();
         let user = rl
             .readline_with_initial("PostgreSQL user: ", ("postgres", ""))
-            .context(MigrationErrorKind::OtherError("Cannot get user"))?;
-        let pass = rpassword::read_password_from_tty(Some("Password: "))
-            .context(MigrationErrorKind::OtherError("Cannot get password"))?;
+            .context("Cannot get user")?;
+        let pass =
+            rpassword::read_password_from_tty(Some("Password: ")).context("Cannot get password")?;
         let connection_url = format!("postgres://{}:{}@{}:{}/{}", user, pass, host, port, dbname);
 
         rl.clear_history();
         let group_name = rl
             .readline_with_initial("Migration group: ", ("default", ""))
-            .context(MigrationErrorKind::OtherError("Cannot get migration group"))?;
+            .context("Cannot get migration group")?;
 
         let initialize_directory = PathBuf::from(matches.value_of("directory").unwrap_or("."));
         let mut migration_group_path = initialize_directory.clone();
@@ -66,8 +66,7 @@ impl Command for SetupCommand {
             }],
         };
 
-        serde_json::to_writer_pretty(config_writer, &config)
-            .context(MigrationErrorKind::OtherError("serialize config error"))?;
+        serde_json::to_writer_pretty(config_writer, &config).context("serialize config error")?;
 
         fs::File::create(migration_group_path.join("1__start__up.sql"))?
             .write_all(b"CREATE TABLE start_table(id INTEGER PRIMARY KEY);\n")?;

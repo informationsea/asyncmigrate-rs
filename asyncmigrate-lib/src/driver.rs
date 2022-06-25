@@ -1,20 +1,11 @@
 use crate::MigrationChangeSets;
-use crate::{MigrationError, MigrationErrorKind};
+use crate::MigrationError;
 use async_trait::async_trait;
 
 #[async_trait]
 pub trait Migration {
     /**
      * Run migration with change sets.
-     *
-     * equivalence with
-     * ```ignore
-     * async fn migrate(
-     *    &mut self,
-     *    changesets: &MigrationChangeSets,
-     *    count: Option<usize>,
-     * ) -> Result<(), MigrationError>;
-     * ```
      */
     async fn migrate(
         &mut self,
@@ -24,14 +15,6 @@ pub trait Migration {
 
     /**
      * Update rollback SQL schema without downgrading
-     *
-     * equivalence with
-     * ```ignore
-     * async fn update_rollback_sql(
-     *     &mut self,
-     *     changesets: &MigrationChangeSets,
-     * ) -> Result<(), MigrationError>;
-     * ```
      */
     async fn update_rollback_sql(
         &mut self,
@@ -40,15 +23,6 @@ pub trait Migration {
 
     /**
      * Rollback SQL schema
-     *
-     * equivalence with
-     * ```ignore
-     * async fn rollback(
-     *     &mut self,
-     *     group_name: &str,
-     *     count: Option<usize>,
-     * ) -> Result<(), MigrationError>;
-     * ```
      */
     async fn rollback(
         &mut self,
@@ -58,14 +32,6 @@ pub trait Migration {
 
     /**
      * Load applied change sets from database.
-     *
-     * equivalence with
-     * ```ignore
-     * async fn load_applied_change_sets(
-     *     &mut self,
-     *     group_name: &str,
-     * ) -> Result<MigrationChangeSets, MigrationError>;
-     * ```
      */
     async fn load_applied_change_sets(
         &mut self,
@@ -103,7 +69,7 @@ pub async fn connect(url: &str) -> Result<Connection, MigrationError> {
         });
         Ok(Connection::TokioPostgres(client))
     } else {
-        Err(MigrationErrorKind::OtherError("unknown database protocol").into())
+        Err(MigrationError::OtherError("unknown database protocol").into())
     }
 }
 

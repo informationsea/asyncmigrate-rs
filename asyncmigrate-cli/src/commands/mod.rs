@@ -6,7 +6,6 @@ mod rollback;
 mod setup;
 
 use async_trait::async_trait;
-use asyncmigrate::MigrationError;
 use clap::{crate_authors, crate_version, App, ArgMatches, SubCommand};
 
 pub(crate) const COMMANDS: &[&dyn Command] = &[
@@ -26,5 +25,5 @@ pub trait Command {
     }
     fn command_name(&self) -> &'static str;
     fn config_subcommand(&self, app: App<'static, 'static>) -> App<'static, 'static>;
-    async fn run(&self, matches: &ArgMatches<'static>) -> Result<(), MigrationError>;
+    async fn run(&self, matches: &ArgMatches<'static>) -> anyhow::Result<()>;
 }

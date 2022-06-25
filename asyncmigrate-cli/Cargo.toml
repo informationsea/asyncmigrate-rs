@@ -15,13 +15,14 @@ license = "Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tokio = { version = "0.2", features = ["io-util", "macros"] }
-tokio-postgres = "0.5"
-asyncmigrate = { version = "0.1", path = "../asyncmigrate-lib" }
+tokio = { version = "1", features = ["full"] }
+tokio-postgres = "0.7"
+asyncmigrate = { version = "0.2", path = "../asyncmigrate-lib" }
 clap = "2"
 async-trait = "0.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-failure = "0.1"
+anyhow = "1"
+thiserror = "1"
 rpassword = "4"
 rustyline = "6"

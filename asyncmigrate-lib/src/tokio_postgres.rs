@@ -1,5 +1,5 @@
+use crate::MigrationError;
 use crate::{ChangeSet, ChangeSetVersionName, Migration, MigrationChangeSets};
-use crate::{MigrationError, MigrationErrorKind};
 use async_trait::async_trait;
 use tokio_postgres::{Client, Transaction};
 
@@ -72,7 +72,7 @@ async fn rollback_postgres(
     let db_migration_set = load_migration_set(client, group_name).await?;
     let count = count.unwrap_or_else(|| db_migration_set.change_sets.len());
     if db_migration_set.change_sets.len() < count {
-        return Err(MigrationErrorKind::OtherError("No change sets to revert").into());
+        return Err(MigrationError::OtherError("No change sets to revert").into());
     }
     for one in db_migration_set.change_sets.iter().rev().take(count) {
         rollback_one(client, &db_migration_set.group_name, one).await?;
@@ -94,10 +94,9 @@ async fn update_rollback_sql_postgres(
             eprintln!("version number or version name is not match");
             eprintln!("      local version: {}", local.name);
             eprintln!("   database version: {}", db.name);
-            return Err(MigrationErrorKind::OtherError(
-                "version number or version name is not match",
-            )
-            .into());
+            return Err(
+                MigrationError::OtherError("version number or version name is not match").into(),
+            );
         }
         if local.down_sql != db.down_sql {
             update_rollback_sql_one(client, &changesets.group_name, local).await?;
